@@ -116,5 +116,5 @@ another origin, CORS on that service. The bundle itself stays a static file.
 
 ## Deploying it
 
-See the companion deployment repo, `mtb-decoupling-demo`, which brings up
+See the companion deployment repo, `mtb-demo`, which brings up
 official cBioPortal 6.4.4 with this bundle injected.
