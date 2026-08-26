@@ -1,6 +1,11 @@
 import { createRoot, Root } from 'react-dom/client';
 import { DemoTab } from './DemoTab';
-import { Autorun, PatientViewPageStore, resolveStore } from './portal';
+import {
+    Autorun,
+    CustomTabConfig,
+    PatientViewPageStore,
+    resolveStore,
+} from './portal';
 import { readSnapshot } from './snapshot';
 import './styles.css';
 
@@ -37,6 +42,7 @@ function renderError(div: HTMLElement, message: string): void {
 
 export function mountDemoTab(
     div: HTMLElement,
+    tab: CustomTabConfig,
     store: PatientViewPageStore | null,
     autorun: Autorun,
     isUnmount: boolean
@@ -68,6 +74,13 @@ export function mountDemoTab(
     const thisMount = mountCount;
     const root = createRoot(div);
 
+    // Whether to exercise the authenticated backend, and where it lives. An
+    // empty base URL means same origin, which is what the proxy setup gives us.
+    const params = tab.customParameters ?? {};
+    const mtbBackend = params.mtbBackend === true;
+    const mtbBaseUrl =
+        typeof params.mtbBaseUrl === 'string' ? params.mtbBaseUrl : '';
+
     // `autorun` is the portal's own mobx autorun, handed to us as the 5th
     // argument. Using it -- rather than shipping our own mobx -- is what binds
     // us to the *host's* observable graph. readSnapshot dereferences the store
@@ -75,7 +88,14 @@ export function mountDemoTab(
     // a remoteData flips from pending to complete.
     const disposeAutorun = autorun(() => {
         const snapshot = readSnapshot(pageStore);
-        root.render(<DemoTab snapshot={snapshot} mountCount={thisMount} />);
+        root.render(
+            <DemoTab
+                snapshot={snapshot}
+                mountCount={thisMount}
+                mtbBackend={mtbBackend}
+                mtbBaseUrl={mtbBaseUrl}
+            />
+        );
     });
 
     instances.set(div, { root, disposeAutorun });

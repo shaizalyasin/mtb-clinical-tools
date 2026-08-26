@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { AuthPanel } from './AuthPanel';
 import { Loadable, StoreSnapshot } from './snapshot';
 
 function Value({ children }: { children: ReactNode }) {
@@ -31,9 +32,13 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 export function DemoTab({
     snapshot,
     mountCount,
+    mtbBackend,
+    mtbBaseUrl,
 }: {
     snapshot: StoreSnapshot;
     mountCount: number;
+    mtbBackend: boolean;
+    mtbBaseUrl: string;
 }) {
     return (
         <div className="mtb-demo">
@@ -81,6 +86,13 @@ export function DemoTab({
                 injected <code>autorun</code>, not reading a value copied at
                 mount time.
             </p>
+            {mtbBackend && (
+                <AuthPanel
+                    patientId={snapshot.patientId}
+                    baseUrl={mtbBaseUrl}
+                />
+            )}
+
             <p className="mtb-note">
                 Tab mounted <Value>{mountCount}</Value>{' '}
                 {mountCount === 1 ? 'time' : 'times'} this page load. Switch away

@@ -8,13 +8,13 @@ import { MountCallback } from './portal';
  */
 const renderMtbDemoTab: MountCallback = (
     div,
-    _tab,
+    tab,
     _url,
     store,
     autorun,
     isUnmount
 ) => {
-    mountDemoTab(div, store, autorun, isUnmount);
+    mountDemoTab(div, tab, store, autorun, isUnmount);
 };
 
 (window as unknown as Record<string, unknown>).renderMtbDemoTab =

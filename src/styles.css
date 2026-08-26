@@ -73,3 +73,57 @@
     font-weight: 600;
     color: #b3402c;
 }
+
+/* --- authenticated-backend panel ------------------------------------- */
+
+.mtb-demo .mtb-auth {
+    margin: 14px 0 0;
+    padding: 12px 14px;
+    border: 1px solid #dde6ed;
+    border-radius: 5px;
+    background: #fff;
+}
+
+.mtb-demo .mtb-subheading {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1b5a89;
+}
+
+.mtb-demo .mtb-auth .mtb-grid {
+    margin: 0;
+}
+
+.mtb-demo .mtb-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 12px 0 0;
+}
+
+.mtb-demo .mtb-button {
+    padding: 5px 12px;
+    border: 1px solid #2b7dbc;
+    border-radius: 4px;
+    background: #2b7dbc;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mtb-demo .mtb-button:hover:not(:disabled) {
+    background: #22699b;
+}
+
+.mtb-demo .mtb-button:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.mtb-demo .mtb-status {
+    font-size: 12px;
+    color: #4a5a66;
+}
