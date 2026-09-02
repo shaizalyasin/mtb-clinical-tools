@@ -80,11 +80,14 @@ export function DemoTab({
             </div>
 
             <p className="mtb-note">
-                The counts above start as <em>loading…</em> and resolve on their
-                own. That transition is the proof: this component is reacting to
-                the portal's live <code>PatientViewPageStore</code> through the
-                injected <code>autorun</code>, not reading a value copied at
-                mount time.
+                None of this panel is part of cBioPortal. It is our own code,
+                served from somewhere else, reading this patient's real data
+                out of the page it was loaded into.
+            </p>
+            <p className="mtb-note">
+                The counts start as <em>loading…</em> and fill in a moment
+                later, on their own &mdash; so they are being read live, not
+                copied once when the tab opened.
             </p>
             {mtbBackend && (
                 <AuthPanel
@@ -96,8 +99,8 @@ export function DemoTab({
             <p className="mtb-note">
                 Tab mounted <Value>{mountCount}</Value>{' '}
                 {mountCount === 1 ? 'time' : 'times'} this page load. Switch away
-                and back &mdash; this counter rises, but the panel above must
-                never appear twice.
+                and back and the counter rises, but the panel never appears
+                twice &mdash; it cleans up after itself.
             </p>
         </div>
     );
