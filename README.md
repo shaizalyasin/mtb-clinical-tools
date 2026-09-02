@@ -46,6 +46,10 @@ The panel also shows how many times it has mounted this page load, so switching
 away and back is visibly exercising the mount/unmount path rather than doing
 nothing.
 
+A second panel, talking to an authenticated backend, appears only when the
+deployment turns it on through `customParameters.mtbBackend`. It is off in the
+plain demo — see the auth overlay in the deployment repository.
+
 ## How it attaches
 
 cBioPortal's `custom_tabs` mechanism is JS injection into the portal's own page
@@ -75,6 +79,7 @@ why, are in [CONTRACT.md](CONTRACT.md).
 | [`src/mount.tsx`](src/mount.tsx) | Mount/unmount lifecycle, idempotency, autorun disposal |
 | [`src/snapshot.ts`](src/snapshot.ts) | Reads store fields the way upstream does |
 | [`src/DemoTab.tsx`](src/DemoTab.tsx) | The React component |
+| [`src/AuthPanel.tsx`](src/AuthPanel.tsx) | The authenticated-backend panel, shown only when the deployment enables it |
 
 Keeping the contract in one file is deliberate: an upgrade check is a read of
 `src/portal.ts` against the new tag, not an audit of the whole repo.
@@ -116,5 +121,6 @@ another origin, CORS on that service. The bundle itself stays a static file.
 
 ## Deploying it
 
-See the companion deployment repo, `mtb-demo`, which brings up
-official cBioPortal 6.4.4 with this bundle injected.
+See the companion deployment repository, [`mtb`](../mtb), which brings up
+official cBioPortal 6.4.4 with this bundle injected and verifies it in a
+browser.
