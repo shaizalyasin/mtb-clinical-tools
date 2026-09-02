@@ -117,10 +117,23 @@ export function AuthPanel({
                 res = await attempt();
             }
 
+            // A second 401 means the login window was dismissed without
+            // signing in. Saying "HTTP 401" here is useless to whoever is
+            // looking at the demo -- say what to do instead.
+            if (res.status === 401) {
+                setPhase({
+                    kind: 'error',
+                    message:
+                        'Still signed out, so the write was refused. Sign in as ' +
+                        'mtbuser / mtbuser in the window that opens, then press Save again.',
+                });
+                return;
+            }
+
             if (!res.ok) {
                 setPhase({
                     kind: 'error',
-                    message: `write refused with HTTP ${res.status}`,
+                    message: `Write refused with HTTP ${res.status}.`,
                 });
                 return;
             }
@@ -195,8 +208,13 @@ export function AuthPanel({
                     Save a recommendation (POST)
                 </button>
                 <span className="mtb-status">
-                    {phase.kind === 'idle' &&
-                        'The write requires a Keycloak session; the read above does not.'}
+                    {phase.kind === 'idle' && (
+                        <>
+                            The write needs a Keycloak session; the read above
+                            does not. Demo login:{' '}
+                            <strong>mtbuser / mtbuser</strong>.
+                        </>
+                    )}
                     {phase.kind === 'saving' && 'Posting…'}
                     {phase.kind === 'login-required' &&
                         '401 login_required — opening the Keycloak login flow…'}
