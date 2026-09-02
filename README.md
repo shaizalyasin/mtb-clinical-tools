@@ -121,6 +121,6 @@ another origin, CORS on that service. The bundle itself stays a static file.
 
 ## Deploying it
 
-See the companion deployment repository, [`mtb`](../mtb), which brings up
+See the companion deployment repository, [`mtb`](https://github.com/shaizalyasin/mtb), which brings up
 official cBioPortal 6.4.4 with this bundle injected and verifies it in a
 browser.
