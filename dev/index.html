@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>mtb-clinical-tools — dev harness</title>
+<link rel="stylesheet" href="/mtb-tools.css">
+<style>
+  body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: #f4f6f8; color: #1b242d; }
+  header { padding: 14px 20px; background: #fff; border-bottom: 1px solid #dde4ea; }
+  h1 { margin: 0 0 2px; font-size: 15px; }
+  p  { margin: 0; font-size: 12px; color: #5a6874; }
+  main { padding: 20px; }
+  button { font: inherit; font-size: 12px; padding: 4px 10px; margin-right: 6px;
+           border: 1px solid #c3ced8; border-radius: 4px; background: #fff; cursor: pointer; }
+  .bar { padding: 10px 20px; background: #fff; border-bottom: 1px solid #dde4ea; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>mtb-clinical-tools — dev harness</h1>
+  <p>Fakes cBioPortal's mount contract so components can be worked on without a portal.
+     It does <strong>not</strong> prove the contract holds — only the deployment repo's
+     <code>verify.sh</code> does that, against a real cBioPortal.</p>
+</header>
+
+<div class="bar">
+  <button id="reload">Re-fetch (pending → ready)</button>
+  <button id="unmount">Unmount</button>
+  <button id="mount">Mount</button>
+</div>
+
+<main><div id="tab"></div></main>
+
+<script src="/mtb-tools.js"></script>
+<script>
+// ---------------------------------------------------------------------------
+// A stand-in for PatientViewPageStore. Field names and the isPending /
+// isComplete / result shape mirror cBioPortal 6.4.4 -- see CONTRACT.md. If the
+// real store changes, this has to change with it, which is deliberate: the
+// harness should break when the contract does.
+// ---------------------------------------------------------------------------
+const remote = result => ({ isPending: true, isComplete: false, isError: false, result: [], _final: result });
+
+const store = {
+  patientId: 'P01',
+  studyId: 'lgg_ucsf_2014',
+  sampleId: '',
+  mutationData: remote(Array.from({ length: 1272 }, (_, i) => ({ id: i }))),
+  samples: remote([{ sampleId: 'P01_Pri' }, { sampleId: 'P01_Rec' }]),
+  clinicalEvents: remote(Array.from({ length: 15 }, (_, i) => ({ id: i }))),
+};
+
+// The portal hands the callback its own MobX autorun. This is the smallest
+// thing that behaves like one: run now, and re-run when data lands.
+const runners = new Set();
+const autorun = fn => { runners.add(fn); fn(); return () => runners.delete(fn); };
+const rerun = () => runners.forEach(fn => fn());
+
+function resolveAll() {
+  for (const key of ['mutationData', 'samples', 'clinicalEvents']) {
+    Object.assign(store[key], { isPending: false, isComplete: true, result: store[key]._final });
+  }
+  rerun();
+}
+
+function resetPending() {
+  for (const key of ['mutationData', 'samples', 'clinicalEvents']) {
+    Object.assign(store[key], { isPending: true, isComplete: false, result: [] });
+  }
+  rerun();
+}
+
+const tab = {
+  id: 'openResource_mtbDemo',
+  title: 'MTB Demo',
+  location: 'PATIENT_PAGE',
+  // Flip to true, with a backend on this origin, to work on AuthPanel.
+  customParameters: { mtbBackend: false, mtbBaseUrl: '' },
+};
+
+const div = document.getElementById('tab');
+const mount = () => window.renderMtbDemoTab(div, tab, location.href, store, autorun, false);
+const unmount = () => window.renderMtbDemoTab(div, tab, location.href, store, autorun, true);
+
+// Same sequence the portal produces: mount while pending, data arrives after.
+mount();
+setTimeout(resolveAll, 1200);
+
+document.getElementById('reload').onclick = () => { resetPending(); setTimeout(resolveAll, 1200); };
+document.getElementById('unmount').onclick = unmount;
+document.getElementById('mount').onclick = mount;
+</script>
+</body>
+</html>

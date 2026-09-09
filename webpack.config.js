@@ -46,6 +46,17 @@ module.exports = {
         splitChunks: false,
         runtimeChunk: false,
     },
+    // `npm start` serves dev/index.html, which fakes the mount contract so a
+    // component can be worked on without a running cBioPortal. The bundle is
+    // served from the root so the harness can load it exactly as the portal
+    // would, by URL.
+    devServer: {
+        static: { directory: path.resolve(__dirname, 'dev') },
+        port: 8081,
+        open: false,
+        hot: false,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+    },
     performance: { hints: false },
     devtool: 'source-map',
 };

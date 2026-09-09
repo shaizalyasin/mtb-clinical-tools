@@ -84,6 +84,29 @@ why, are in [CONTRACT.md](CONTRACT.md).
 Keeping the contract in one file is deliberate: an upgrade check is a read of
 `src/portal.ts` against the new tag, not an audit of the whole repo.
 
+## Working on it locally
+
+The bundle is not a website — it is a fragment that mounts into cBioPortal's
+page, so on its own there is nothing to open. For iterating on a component
+without running a portal, there is a harness:
+
+```bash
+npm install
+npm start          # http://localhost:8081
+```
+
+`dev/index.html` fakes the mount contract: it builds a stand-in store with the
+same field names and `isPending` / `isComplete` / `result` shape as
+cBioPortal 6.4.4, supplies a minimal `autorun`, and calls the mount callback the
+way the portal does — starting pending, then resolving, so the loading
+transition is exercised. Buttons let you re-fetch, unmount and remount.
+
+It is a development aid, not evidence. It cannot show that the contract still
+holds, because it is our own imitation of the portal; only `verify.sh` in the
+deployment repository does that, against a real cBioPortal. When the real store
+changes, the harness has to be updated too — which is intended, since it should
+break when the contract does.
+
 ## Build
 
 Via Docker, which needs nothing installed locally:
