@@ -116,7 +116,7 @@ docker build -t mtb-clinical-tools .
 docker run --rm -p 8081:80 mtb-clinical-tools
 ```
 
-Or directly, with Node 22:
+Or directly, with Node 22 on Linux or inside WSL:
 
 ```bash
 npm install
@@ -124,10 +124,6 @@ npm run build      # -> dist/
 npm run dev        # watch mode
 npm run typecheck
 ```
-
-Note: `npm run build` from a Windows UNC path (`\\wsl.localhost\...`) will not
-find its config, because the shell falls back to `C:\Windows` as the working
-directory. Build inside WSL or in the container instead.
 
 ## Adding a real feature later
 
