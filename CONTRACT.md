@@ -25,7 +25,7 @@ Clone `cbioportal-frontend` at the new tag and check these six things.
 
 ### 0. The tab id is still routable
 
-**Not a bundle concern — a deployment-config concern — but it fails the loudest,
+**Not a bundle concern but a deployment-config concern, and it fails the loudest,
 so check it first.** The custom tab's `id` becomes a URL path segment, and
 cBioPortal's router validates it. `customTabParamValidator` in `src/routes.tsx`
 accepts a custom tab id only if the path matches one of:
@@ -54,7 +54,7 @@ getBrowserWindow()[tab.mountCallbackName](div, tab, url, store, autorun, isUnmou
 ```
 
 Six arguments, in that order. `autorun` must still be the portal's own MobX
-`autorun` — the bundle does not ship MobX, and binding to the host's observable
+`autorun`. The bundle does not ship MobX, and binding to the host's observable
 graph is what makes the tab reactive.
 
 ### 2. `mountCallbackName` is still resolved off `window`
@@ -63,7 +63,7 @@ Same function. The config is JSON, so the callback is named, not passed.
 
 Note that `mountCallback` *can* also be expressed in JSON: `prepareCustomTabConfigurations()`
 in `src/shared/lib/customTabs/customTabHelpers.tsx` runs `eval()` on it when it
-is a string. We deliberately do not use that — a named global lets the bundle
+is a string. We deliberately do not use that: a named global lets the bundle
 own its own code, keeps the config to a URL and a name, and avoids `eval`.
 
 ### 3. Where the live store actually comes from
@@ -80,8 +80,8 @@ PatientViewPageTabs.tsx        buildCustomTabs()
                                                                        ^^^^
 ```
 
-The variant that does pass the store — `PatientViewPage.customTabMountCallback`
-(`src/pages/patientView/PatientViewPage.tsx`) — is dead code at this tag; its
+The variant that does pass the store, `PatientViewPage.customTabMountCallback`
+(`src/pages/patientView/PatientViewPage.tsx`), is dead code at this tag; its
 only call site is commented out in `PatientViewPageTabs.tsx`.
 
 So the bundle instead reads the global that `PatientViewPage`'s constructor
@@ -105,14 +105,14 @@ reads:
 | --- | --- |
 | `patientId` | `@computed` getter |
 | `studyId` | `@observable` |
-| `sampleId` | `@computed` getter — **empty string** unless the URL names a sample |
+| `sampleId` | `@computed` getter, **empty string** unless the URL names a sample |
 | `mutationData` | `remoteData` |
 | `samples` | `remoteData` |
 | `clinicalEvents` | `remoteData` |
 
 `remoteData` containers expose `isPending` / `isComplete` / `isError` /
-`result`. Upstream gates on these itself — see `hideTissueImageTab` and
-`shouldShowTrialMatch` in `PatientViewPage.tsx` — so the pattern in
+`result`. Upstream gates on these itself; see `hideTissueImageTab` and
+`shouldShowTrialMatch` in `PatientViewPage.tsx`, so the pattern in
 `src/snapshot.ts` mirrors upstream's own usage.
 
 ### 5. Tab lifecycle
@@ -141,6 +141,6 @@ The bundle fails loudly rather than silently:
 ## Running the check
 
 The deployment repo's `./verify.sh` drives a real browser through all of it and
-prints a pass/fail line per criterion. After bumping the image tag, run it — if
+prints a pass/fail line per criterion. After bumping the image tag, run it. If
 it comes back 8/8, the contract still holds and there is nothing else to do. If
 something fails, this document says where to look.

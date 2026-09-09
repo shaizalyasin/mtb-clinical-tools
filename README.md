@@ -25,7 +25,7 @@ it can't be shared with another institution without shipping them a whole
 portal build.
 
 Moving the features out here changes the upgrade story from "rebase a fork" to
-"bump an image tag" — with one caveat, documented in
+"bump an image tag", with one caveat documented in
 [CONTRACT.md](CONTRACT.md), which is a short per-upgrade check rather than a
 merge.
 
@@ -39,7 +39,7 @@ It reads the live `PatientViewPageStore` out of the running portal and renders:
 The counts start as *loading…* and resolve on their own a moment later. **That
 transition is the entire point.** It is what distinguishes reading the portal's
 live, reactive MobX store from reading a value scraped out of the URL at mount
-time. If a count never leaves *loading…*, the contract has broken — see
+time. If a count never leaves *loading…*, the contract has broken. See
 [CONTRACT.md](CONTRACT.md).
 
 The panel also shows how many times it has mounted this page load, so switching
@@ -48,12 +48,12 @@ nothing.
 
 A second panel, talking to an authenticated backend, appears only when the
 deployment turns it on through `customParameters.mtbBackend`. It is off in the
-plain demo — see the auth overlay in the deployment repository.
+plain demo. See the auth overlay in the deployment repository.
 
 ## How it attaches
 
 cBioPortal's `custom_tabs` mechanism is JS injection into the portal's own page
-— not an iframe. The portal:
+rather than an iframe. The portal:
 
 1. appends each `pathsToCSS` entry as a `<link>` and loads each `pathsToJs`
    entry as a `<script>` (caching the resulting promise per tab),
@@ -62,7 +62,7 @@ cBioPortal's `custom_tabs` mechanism is JS injection into the portal's own page
 
 Because it is the same document and the same origin, the callback gets the
 portal's real MobX `autorun` and can subscribe to the portal's real store. The
-bundle ships its own React and does *not* ship MobX — reactivity comes from the
+bundle ships its own React and does *not* ship MobX; reactivity comes from the
 injected `autorun`, which is what binds it to the host's observable graph.
 
 One wrinkle worth knowing up front: at 6.4.4 the `store` argument arrives as
@@ -86,7 +86,7 @@ Keeping the contract in one file is deliberate: an upgrade check is a read of
 
 ## Working on it locally
 
-The bundle is not a website — it is a fragment that mounts into cBioPortal's
+The bundle is not a website. It is a fragment that mounts into cBioPortal's
 page, so on its own there is nothing to open. For iterating on a component
 without running a portal, there is a harness:
 
@@ -98,13 +98,13 @@ npm start          # http://localhost:8081
 `dev/index.html` fakes the mount contract: it builds a stand-in store with the
 same field names and `isPending` / `isComplete` / `result` shape as
 cBioPortal 6.4.4, supplies a minimal `autorun`, and calls the mount callback the
-way the portal does — starting pending, then resolving, so the loading
+way the portal does, starting pending then resolving, so the loading
 transition is exercised. Buttons let you re-fetch, unmount and remount.
 
 It is a development aid, not evidence. It cannot show that the contract still
 holds, because it is our own imitation of the portal; only `verify.sh` in the
 deployment repository does that, against a real cBioPortal. When the real store
-changes, the harness has to be updated too — which is intended, since it should
+changes, the harness has to be updated too, which is intended, since it should
 break when the contract does.
 
 ## Build
@@ -128,7 +128,7 @@ npm run typecheck
 ## Adding a real feature later
 
 1. Add a component, and add whatever store fields it needs to the interfaces in
-   `src/portal.ts` — so the contract stays inventoried in one place.
+   `src/portal.ts`, so the contract stays inventoried in one place.
 2. Read those fields in `src/snapshot.ts`, gating on `isPending` / `isComplete`
    before touching `.result`.
 3. If it needs a second tab, export another global and add a second
