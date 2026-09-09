@@ -93,7 +93,7 @@ docker build -t mtb-clinical-tools .
 docker run --rm -p 8081:80 mtb-clinical-tools
 ```
 
-Or directly:
+Or directly, with Node 22:
 
 ```bash
 npm install
@@ -121,6 +121,7 @@ another origin, CORS on that service. The bundle itself stays a static file.
 
 ## Deploying it
 
-See the companion deployment repository, [`mtb`](https://github.com/shaizalyasin/mtb), which brings up
+See the companion deployment repository,
+[`mtb`](https://github.com/shaizalyasin/mtb), which brings up
 official cBioPortal 6.4.4 with this bundle injected and verifies it in a
 browser.
