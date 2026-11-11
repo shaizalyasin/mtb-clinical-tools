@@ -115,6 +115,17 @@ reads:
 `shouldShowTrialMatch` in `PatientViewPage.tsx`, so the pattern in
 `src/snapshot.ts` mirrors upstream's own usage.
 
+**The Prognosis tab adds no rows to this table.** `readPrognosisTarget` reads
+`patientId`, `studyId`, `sampleId` and `samples`, all of which the demo tab
+already depends on. That is deliberate: every additional store field is another
+thing to re-check on an upgrade, so a new tab that needs only identifiers
+should take only identifiers.
+
+Everything else the Prognosis tab needs comes from cBioPortal's **public REST
+API** (`src/portalApi.ts`), which is versioned, documented and not part of this
+contract. When a feature can be served either from the store or from the REST
+API, the REST API is the cheaper choice for exactly this reason.
+
 ### 5. Tab lifecycle
 
 `src/shared/components/MSKTabs/MSKTabs.tsx`. `MSKTab` fires `onTabDidMount` from

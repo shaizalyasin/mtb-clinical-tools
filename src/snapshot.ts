@@ -35,6 +35,50 @@ function read<T, R>(
     return { state: 'ready', value: project(remote.result) };
 }
 
+export interface PrognosisTarget {
+    patientId: string;
+    studyId: string;
+    /** The sample to score. */
+    sampleId: Loadable<string>;
+}
+
+/**
+ * The identifiers the Prognosis tab needs, and nothing else.
+ *
+ * Deliberately narrower than readSnapshot: every store field read widens the
+ * surface that has to be re-checked on a cBioPortal upgrade, and these are all
+ * fields the demo tab already depends on, so this adds nothing new to
+ * CONTRACT.md.
+ *
+ * store.sampleId is empty unless the URL names a sample, which it usually does
+ * not, so the first entry of store.samples is the real source. Taking the
+ * first is the same choice the training pipeline makes when a patient has more
+ * than one sample.
+ */
+export function readPrognosisTarget(
+    store: PatientViewPageStore
+): PrognosisTarget {
+    const explicit = store.sampleId;
+    const fromSamples = read(store.samples, s => s.map(x => x.sampleId));
+
+    let sampleId: Loadable<string>;
+    if (explicit) {
+        sampleId = { state: 'ready', value: explicit };
+    } else if (fromSamples.state === 'ready') {
+        sampleId = fromSamples.value.length
+            ? { state: 'ready', value: fromSamples.value[0] }
+            : { state: 'error' };
+    } else {
+        sampleId = fromSamples;
+    }
+
+    return {
+        patientId: store.patientId,
+        studyId: store.studyId,
+        sampleId,
+    };
+}
+
 export function readSnapshot(store: PatientViewPageStore): StoreSnapshot {
     return {
         patientId: store.patientId,

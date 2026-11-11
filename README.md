@@ -14,8 +14,18 @@ at them through a `custom_tabs` entry in its `frontend.json`. cBioPortal loads
 them into its own page and calls a global we expose. No cBioPortal source is
 patched, and no cBioPortal image is rebuilt.
 
-Right now it holds one demo tab, whose only job is to prove the mechanism works
-against a real portal. The real MTB features move in here afterwards.
+It holds two tabs, both mounted from the same bundle:
+
+- **MTB Demo**, whose only job is to prove the mechanism works against a real
+  portal. The real MTB features move in alongside it.
+- **Prognosis**, which scores the open patient with the survival model in
+  [`mtb-survival-model`](https://github.com/shaizalyasin/mtb-survival-model)
+  and shows a Kaplan-Meier plot, a percentile within the patient's cancer type,
+  and what drove the estimate.
+
+The second tab is the more interesting evidence. It was added without touching
+a single line of cBioPortal, without a rebase, and without adding a row to
+[CONTRACT.md](CONTRACT.md).
 
 ## Why this exists
 
@@ -75,11 +85,16 @@ why, are in [CONTRACT.md](CONTRACT.md).
 | File | What it holds |
 | --- | --- |
 | [`src/portal.ts`](src/portal.ts) | **Every** dependency on cBioPortal internals, isolated on purpose |
-| [`src/index.tsx`](src/index.tsx) | Registers `window.renderMtbDemoTab` |
+| [`src/index.tsx`](src/index.tsx) | Registers `window.renderMtbDemoTab` and `window.renderMtbPrognosisTab` |
 | [`src/mount.tsx`](src/mount.tsx) | Mount/unmount lifecycle, idempotency, autorun disposal |
 | [`src/snapshot.ts`](src/snapshot.ts) | Reads store fields the way upstream does |
 | [`src/DemoTab.tsx`](src/DemoTab.tsx) | The React component |
 | [`src/AuthPanel.tsx`](src/AuthPanel.tsx) | The authenticated-backend panel, shown only when the deployment enables it |
+| [`src/mountPrognosis.tsx`](src/mountPrognosis.tsx) | Same lifecycle, for the Prognosis tab |
+| [`src/PrognosisTab.tsx`](src/PrognosisTab.tsx) | Risk result, percentile, attributions |
+| [`src/KaplanMeier.tsx`](src/KaplanMeier.tsx) | Survival curves as inline SVG, no chart library |
+| [`src/portalApi.ts`](src/portalApi.ts) | cBioPortal's **public REST API**, not internals, so not part of the contract |
+| [`src/riskClient.ts`](src/riskClient.ts) | Calls the risk service |
 
 Keeping the contract in one file is deliberate: an upgrade check is a read of
 `src/portal.ts` against the new tag, not an audit of the whole repo.
@@ -106,6 +121,25 @@ holds, because it is our own imitation of the portal; only `verify.sh` in the
 deployment repository does that, against a real cBioPortal. When the real store
 changes, the harness has to be updated too, which is intended, since it should
 break when the contract does.
+
+The harness also serves the Prognosis tab. That tab needs two things the
+harness does not host, so `webpack.config.js` proxies both onto its own origin,
+reproducing the same-origin arrangement the tab gets in a real deployment:
+
+```bash
+# in the mtb-survival-model checkout
+make serve                       # risk service on :8000
+
+# here
+npm start                        # proxies /api and /risk
+```
+
+`/api` goes to `https://www.cbioportal.org` by default, so a real patient can
+be loaded without running a portal at all. Override either target:
+
+```bash
+DEV_PORTAL=http://localhost:9090 DEV_RISK=http://localhost:8000 npm start
+```
 
 ## Build
 

@@ -12,7 +12,12 @@
   main { padding: 20px; }
   button { font: inherit; font-size: 12px; padding: 4px 10px; margin-right: 6px;
            border: 1px solid #c3ced8; border-radius: 4px; background: #fff; cursor: pointer; }
+  button[aria-pressed="true"] { background: #2b7dbc; border-color: #2b7dbc; color: #fff; }
   .bar { padding: 10px 20px; background: #fff; border-bottom: 1px solid #dde4ea; }
+  .bar + .bar { border-top: 0; }
+  label { font-size: 12px; color: #5a6874; margin-right: 4px; }
+  input { font: inherit; font-size: 12px; padding: 3px 6px; width: 15em;
+          border: 1px solid #c3ced8; border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -25,9 +30,20 @@
 </header>
 
 <div class="bar">
+  <button id="tab-demo" aria-pressed="true">MTB Demo</button>
+  <button id="tab-prognosis" aria-pressed="false">Prognosis</button>
+</div>
+
+<div class="bar" id="demo-controls">
   <button id="reload">Re-fetch (pending → ready)</button>
   <button id="unmount">Unmount</button>
   <button id="mount">Mount</button>
+</div>
+
+<div class="bar" id="prognosis-controls" style="display:none">
+  <label for="study">Study</label><input id="study" value="msk_chord_2024">
+  <label for="patient">Patient</label><input id="patient" value="P-0000012">
+  <button id="load">Load patient</button>
 </div>
 
 <main><div id="tab"></div></main>
@@ -57,31 +73,90 @@ const runners = new Set();
 const autorun = fn => { runners.add(fn); fn(); return () => runners.delete(fn); };
 const rerun = () => runners.forEach(fn => fn());
 
+const REMOTES = ['mutationData', 'samples', 'clinicalEvents'];
+
 function resolveAll() {
-  for (const key of ['mutationData', 'samples', 'clinicalEvents']) {
+  for (const key of REMOTES) {
     Object.assign(store[key], { isPending: false, isComplete: true, result: store[key]._final });
   }
   rerun();
 }
 
 function resetPending() {
-  for (const key of ['mutationData', 'samples', 'clinicalEvents']) {
+  for (const key of REMOTES) {
     Object.assign(store[key], { isPending: true, isComplete: false, result: [] });
   }
   rerun();
 }
 
-const tab = {
-  id: 'openResource_mtbDemo',
-  title: 'MTB Demo',
-  location: 'PATIENT_PAGE',
-  // Flip to true, with a backend on this origin, to work on AuthPanel.
-  customParameters: { mtbBackend: false, mtbBaseUrl: '' },
+const TABS = {
+  demo: {
+    callback: 'renderMtbDemoTab',
+    config: {
+      id: 'openResource_mtbDemo',
+      title: 'MTB Demo',
+      location: 'PATIENT_PAGE',
+      // Flip to true, with a backend on this origin, to work on AuthPanel.
+      customParameters: { mtbBackend: false, mtbBaseUrl: '' },
+    },
+  },
+  prognosis: {
+    callback: 'renderMtbPrognosisTab',
+    config: {
+      id: 'openResource_mtbPrognosis',
+      title: 'Prognosis',
+      location: 'PATIENT_PAGE',
+      // Both are proxied onto this origin by webpack-dev-server, so the tab
+      // sees the same same-origin arrangement it gets behind the auth proxy.
+      // See the `proxy` block in webpack.config.js.
+      customParameters: { riskBaseUrl: '/risk', apiBase: '/api' },
+    },
+  },
 };
 
+let current = 'demo';
 const div = document.getElementById('tab');
-const mount = () => window.renderMtbDemoTab(div, tab, location.href, store, autorun, false);
-const unmount = () => window.renderMtbDemoTab(div, tab, location.href, store, autorun, true);
+
+const call = (which, isUnmount) =>
+  window[TABS[which].callback](div, TABS[which].config, location.href, store, autorun, isUnmount);
+
+const mount = () => call(current, false);
+const unmount = () => call(current, true);
+
+function show(which) {
+  if (which === current) return;
+  unmount();
+  current = which;
+  document.getElementById('tab-demo').setAttribute('aria-pressed', String(which === 'demo'));
+  document.getElementById('tab-prognosis').setAttribute('aria-pressed', String(which === 'prognosis'));
+  document.getElementById('demo-controls').style.display = which === 'demo' ? '' : 'none';
+  document.getElementById('prognosis-controls').style.display = which === 'prognosis' ? '' : 'none';
+  // The portal unmounts and remounts on every tab switch, because the
+  // custom_tabs entries set unmountOnHide. Doing the same here keeps the
+  // teardown path exercised in development too.
+  setTimeout(mount, 0);
+}
+
+// Point the fake store at a real patient, so the Prognosis tab has something
+// the portal API will actually answer for.
+function loadPatient() {
+  store.studyId = document.getElementById('study').value.trim();
+  store.patientId = document.getElementById('patient').value.trim();
+  store.sampleId = '';
+  resetPending();
+  // The real sample ids come from the portal; ask it rather than guessing.
+  fetch(`/api/studies/${encodeURIComponent(store.studyId)}/patients/${encodeURIComponent(store.patientId)}/samples`)
+    .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+    .then(samples => {
+      store.samples._final = samples.map(s => ({ sampleId: s.sampleId }));
+      resolveAll();
+    })
+    .catch(error => {
+      Object.assign(store.samples, { isPending: false, isComplete: false, isError: true });
+      rerun();
+      console.error('dev harness: could not list samples', error);
+    });
+}
 
 // Same sequence the portal produces: mount while pending, data arrives after.
 mount();
@@ -90,6 +165,9 @@ setTimeout(resolveAll, 1200);
 document.getElementById('reload').onclick = () => { resetPending(); setTimeout(resolveAll, 1200); };
 document.getElementById('unmount').onclick = unmount;
 document.getElementById('mount').onclick = mount;
+document.getElementById('tab-demo').onclick = () => show('demo');
+document.getElementById('tab-prognosis').onclick = () => { show('prognosis'); setTimeout(loadPatient, 50); };
+document.getElementById('load').onclick = loadPatient;
 </script>
 </body>
 </html>

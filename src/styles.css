@@ -127,3 +127,181 @@
     font-size: 12px;
     color: #4a5a66;
 }
+
+/* ---------------------------------------------------------------------------
+ * Prognosis tab. Still namespaced under .mtb-demo, which the tab root carries
+ * alongside .mtb-prognosis, so none of this can escape into the host page.
+ * ------------------------------------------------------------------------ */
+
+.mtb-demo .mtb-subheading {
+    margin: 16px 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1b5a89;
+}
+
+.mtb-demo .mtb-statement {
+    margin: 12px 0 0;
+    max-width: 62em;
+    font-size: 13.5px;
+    line-height: 1.55;
+}
+
+.mtb-demo .mtb-footnote,
+.mtb-demo .mtb-caveats {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: #4a5a66;
+}
+
+.mtb-demo .mtb-caveats ul {
+    margin: 4px 0 0;
+    padding-left: 18px;
+}
+
+/* Persistent, not dismissible: the provenance of a prediction is not an
+   interruption to be cleared. */
+.mtb-demo .mtb-disclaimer {
+    margin: 14px 0 0;
+    padding: 8px 10px;
+    border-left: 3px solid #b9802a;
+    background: #fdf6e9;
+    font-size: 12px;
+    color: #5c4418;
+}
+
+/* Kaplan-Meier -------------------------------------------------------------- */
+
+.mtb-demo .mtb-km {
+    margin: 10px 0 0;
+}
+
+.mtb-demo .mtb-km-svg {
+    display: block;
+    width: 100%;
+    max-width: 660px;
+    height: auto;
+    background: #fff;
+    border: 1px solid #dde8ef;
+    border-radius: 4px;
+}
+
+.mtb-demo .mtb-km-grid {
+    stroke: #e8eef3;
+    stroke-width: 1;
+}
+
+.mtb-demo .mtb-km-axis {
+    font-size: 9px;
+    fill: #6b7a86;
+}
+
+.mtb-demo .mtb-km-axis-title {
+    font-size: 10px;
+    fill: #4a5a66;
+}
+
+.mtb-demo .mtb-km-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: #4a5a66;
+}
+
+.mtb-demo .mtb-km-key i {
+    display: inline-block;
+    width: 18px;
+    height: 3px;
+    margin-right: 6px;
+    vertical-align: middle;
+    border-radius: 2px;
+}
+
+.mtb-demo .mtb-km-key-on {
+    font-weight: 600;
+    color: #23303a;
+}
+
+.mtb-demo .mtb-km-atrisk {
+    margin: 10px 0 0;
+    border-collapse: collapse;
+    font-size: 11px;
+    color: #4a5a66;
+}
+
+.mtb-demo .mtb-km-atrisk caption {
+    padding: 0 0 4px;
+    text-align: left;
+    font-weight: 600;
+    color: #4a5a66;
+}
+
+.mtb-demo .mtb-km-atrisk th,
+.mtb-demo .mtb-km-atrisk td {
+    padding: 2px 10px 2px 0;
+    text-align: right;
+    font-weight: 400;
+}
+
+.mtb-demo .mtb-km-atrisk th[scope="row"] {
+    text-align: left;
+    padding-right: 14px;
+}
+
+/* Attributions -------------------------------------------------------------- */
+
+.mtb-demo .mtb-attr {
+    width: 100%;
+    max-width: 660px;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.mtb-demo .mtb-attr th[scope="row"] {
+    width: 16em;
+    padding: 3px 12px 3px 0;
+    text-align: left;
+    font-weight: 400;
+    color: #23303a;
+}
+
+.mtb-demo .mtb-attr-track {
+    position: relative;
+    height: 13px;
+    background: #eef4f8;
+    border-radius: 2px;
+}
+
+.mtb-demo .mtb-attr-zero {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #c3d2dd;
+}
+
+.mtb-demo .mtb-attr-bar {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    border-radius: 2px;
+}
+
+.mtb-demo .mtb-attr-up {
+    background: #c0392b;
+}
+
+.mtb-demo .mtb-attr-down {
+    background: #2c7fb8;
+}
+
+.mtb-demo .mtb-attr-value {
+    width: 5em;
+    padding-left: 10px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: #4a5a66;
+}

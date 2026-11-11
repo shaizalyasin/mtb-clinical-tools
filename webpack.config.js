@@ -56,6 +56,27 @@ module.exports = {
         open: false,
         hot: false,
         headers: { 'Access-Control-Allow-Origin': '*' },
+        // The Prognosis tab talks to two things the harness does not host: a
+        // cBioPortal REST API and the risk service. Proxying both onto this
+        // origin reproduces the deployed arrangement, where the tab is
+        // same-origin with the portal, and avoids CORS in development.
+        //
+        //   DEV_PORTAL=http://localhost:9090   to use a local portal instead
+        //   DEV_RISK=http://localhost:8000     the risk service, `make serve`
+        proxy: [
+            {
+                context: ['/api'],
+                target: process.env.DEV_PORTAL || 'https://www.cbioportal.org',
+                changeOrigin: true,
+                secure: true,
+            },
+            {
+                context: ['/risk'],
+                target: process.env.DEV_RISK || 'http://localhost:8000',
+                changeOrigin: true,
+                pathRewrite: { '^/risk': '' },
+            },
+        ],
     },
     performance: { hints: false },
     devtool: 'source-map',
