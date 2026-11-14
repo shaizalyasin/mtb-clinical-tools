@@ -25,10 +25,60 @@ export interface MolecularProfile {
     datatype?: string;
 }
 
+/** As cBioPortal returns them: identifiers, profile ids, genomic coordinates. */
+interface RawAlteration {
+    hugoGeneSymbol?: string;
+    gene?: { hugoGeneSymbol?: string };
+    mutationType?: string;
+    variantClassification?: string;
+    alteration?: number;
+}
+
+/**
+ * The fields the model reads, and nothing else.
+ *
+ * cBioPortal's responses carry studyId, patientId, sampleId, molecularProfileId
+ * and the full genomic coordinates of every variant. Forwarding them verbatim
+ * would hand the risk service an identified record, which contradicts the whole
+ * reason the service is stateless and has no route back to the portal. So the
+ * payload is reduced here, in the browser, before it leaves the page.
+ *
+ * risk/verify-risk.mjs asserts that no identifier reaches the service, so this
+ * cannot quietly regress.
+ */
+export interface MinimalAlteration {
+    hugoGeneSymbol?: string;
+    mutationType?: string;
+    variantClassification?: string;
+    alteration?: number;
+}
+
+export interface MinimalClinicalDatum {
+    clinicalAttributeId: string;
+    value: string;
+}
+
 export interface PatientPayloads {
-    clinical_data: ClinicalDatum[];
-    mutations: unknown[];
-    discrete_cna: unknown[];
+    clinical_data: MinimalClinicalDatum[];
+    mutations: MinimalAlteration[];
+    discrete_cna: MinimalAlteration[];
+}
+
+function minimalClinical(items: ClinicalDatum[]): MinimalClinicalDatum[] {
+    return items.map(item => ({
+        clinicalAttributeId: item.clinicalAttributeId,
+        value: item.value,
+    }));
+}
+
+/** Mutations and discrete CNA reduce to the same three fields the model uses. */
+function minimalAlterations(items: RawAlteration[]): MinimalAlteration[] {
+    return items.map(item => ({
+        hugoGeneSymbol: item.hugoGeneSymbol ?? item.gene?.hugoGeneSymbol,
+        mutationType: item.mutationType,
+        variantClassification: item.variantClassification,
+        alteration: item.alteration,
+    }));
 }
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
@@ -89,7 +139,7 @@ export async function fetchPatientPayloads(
     // A study may carry no CNA profile at all. That is a missing feature, not
     // an error, so it must not fail the whole request.
     const mutations = mutation
-        ? await json<unknown[]>(
+        ? await json<RawAlteration[]>(
               `${api}/molecular-profiles/${encodeURIComponent(
                   mutation.molecularProfileId
               )}/mutations/fetch?projection=DETAILED`,
@@ -97,10 +147,10 @@ export async function fetchPatientPayloads(
           )
         : [];
 
-    let discreteCna: unknown[] = [];
+    let discreteCna: RawAlteration[] = [];
     if (cna) {
         try {
-            discreteCna = await json<unknown[]>(
+            discreteCna = await json<RawAlteration[]>(
                 `${api}/molecular-profiles/${encodeURIComponent(
                     cna.molecularProfileId
                 )}/discrete-copy-number/fetch` +
@@ -112,9 +162,11 @@ export async function fetchPatientPayloads(
         }
     }
 
+    // Reduced here, not at the call site, so there is exactly one place where
+    // portal data can turn into a request body.
     return {
-        clinical_data: [...sampleClinical, ...patientClinical],
-        mutations,
-        discrete_cna: discreteCna,
+        clinical_data: minimalClinical([...sampleClinical, ...patientClinical]),
+        mutations: minimalAlterations(mutations),
+        discrete_cna: minimalAlterations(discreteCna),
     };
 }
