@@ -208,47 +208,70 @@ function Result({
 }) {
     const cohort = prediction.reference_cohort;
 
+    const percentile = prediction.percentile_within_cancer_type;
+
     return (
         <>
-            {km ? (
-                <KaplanMeier km={km} highlight={prediction.risk_tertile} />
-            ) : (
-                <p className="mtb-pending">
-                    Reference survival curves are unavailable for this cancer type.
+            {/* The verdict leads, because the percentile is the only number on
+                this page a reader can act on. The plot explains it; it is not
+                itself the answer. */}
+            <div className={`mtb-verdict mtb-verdict-${prediction.risk_tertile}`}>
+                <div className="mtb-verdict-figure">
+                    <strong>{percentile}</strong>
+                    <span>{ordinal(percentile).replace(String(percentile), '')} percentile</span>
+                </div>
+                <p className="mtb-verdict-text">
+                    Predicted risk is higher than <strong>{percentile}%</strong>{' '}
+                    of patients
+                    {cohort.is_pan_cancer_fallback ? (
+                        <>
+                            {' '}
+                            in the <strong>pan-cancer</strong> reference cohort
+                            (n = {cohort.n.toLocaleString()}). There were too few
+                            patients of this cancer type to compare against.
+                        </>
+                    ) : (
+                        <>
+                            {' '}
+                            with <strong>{cohort.oncotree_code}</strong> in the
+                            reference cohort (n = {cohort.n.toLocaleString()}).
+                        </>
+                    )}{' '}
+                    That places them in the{' '}
+                    <strong>{TERTILE_WORDS[prediction.risk_tertile]}</strong>.
                 </p>
-            )}
+            </div>
 
-            <p className="mtb-statement">
-                Predicted risk is higher than{' '}
-                <strong>{prediction.percentile_within_cancer_type}%</strong> of
-                patients
-                {cohort.is_pan_cancer_fallback ? (
-                    <>
-                        {' '}
-                        in the <strong>pan-cancer</strong> reference cohort (n ={' '}
-                        {cohort.n.toLocaleString()}). There were too few patients
-                        of this cancer type to compare against.
-                    </>
-                ) : (
-                    <>
-                        {' '}
-                        with <strong>{cohort.oncotree_code}</strong> in the
-                        reference cohort (n = {cohort.n.toLocaleString()}).
-                    </>
-                )}{' '}
-                That places them in the {TERTILE_WORDS[prediction.risk_tertile]},
-                at the {ordinal(prediction.percentile_within_cancer_type)}{' '}
-                percentile.
-            </p>
+            {/* Two panels side by side on a wide patient page, stacked below
+                about 1040px. The patient view is wide and the old single
+                column left most of it empty. */}
+            <div className="mtb-prog-cols">
+                <section className="mtb-panel">
+                    <h4 className="mtb-subheading">
+                        Observed survival in the reference cohort
+                    </h4>
+                    {km ? (
+                        <KaplanMeier km={km} highlight={prediction.risk_tertile} />
+                    ) : (
+                        <p className="mtb-pending">
+                            Reference survival curves are unavailable for this
+                            cancer type.
+                        </p>
+                    )}
+                </section>
 
-            <h4 className="mtb-subheading">What drove this estimate</h4>
-            <AttributionBars prediction={prediction} />
-            <p className="mtb-footnote">
-                Contributions are on the log-hazard scale, red to the right
-                increases predicted risk and blue to the left decreases it. Risk
-                score {prediction.risk_score.toFixed(3)}, model{' '}
-                {prediction.model_version}.
-            </p>
+                <section className="mtb-panel">
+                    <h4 className="mtb-subheading">What drove this estimate</h4>
+                    <AttributionBars prediction={prediction} />
+                    <p className="mtb-footnote">
+                        Contributions are on the log-hazard scale. Red to the
+                        right increases predicted risk, blue to the left
+                        decreases it. Risk score{' '}
+                        {prediction.risk_score.toFixed(3)}, model{' '}
+                        {prediction.model_version}.
+                    </p>
+                </section>
+            </div>
 
             {(prediction.missing_features.length > 0 ||
                 prediction.input_caveats.length > 0) && (
