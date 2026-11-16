@@ -60,6 +60,23 @@ A second panel, talking to an authenticated backend, appears only when the
 deployment turns it on through `customParameters.mtbBackend`. It is off in the
 plain demo. See the auth overlay in the deployment repository.
 
+## What the Prognosis tab sends out
+
+It fetches the patient from cBioPortal's REST API under the signed-in user's
+own session, so the risk service needs no portal credentials and has no route
+back to the portal. But cBioPortal's responses carry `studyId`, `patientId` and
+`sampleId` on every row, along with the full genomic coordinates of every
+variant, and the first version of this tab forwarded all of it verbatim. The
+service was being handed an identified record even though it read none of those
+fields.
+
+[`src/portalApi.ts`](src/portalApi.ts) now reduces the payload to the fields
+the model actually reads, in the browser, before anything leaves the page.
+There is exactly one place where portal data can become a request body, which
+is what makes that checkable. `risk/verify-risk.mjs` in the deployment
+repository reads the real POST body and fails if an identifier appears in it,
+so this cannot quietly regress.
+
 ## How it attaches
 
 cBioPortal's `custom_tabs` mechanism is JS injection into the portal's own page
